@@ -54,7 +54,7 @@ L.Dropchop.FileExecute = L.Dropchop.BaseExecute.extend({
                 }
             },
 
-            remove: function( action, parameters, options, layers ){
+            remove: function( action, parameters, options, layers, callback ){
                 callback({
                     remove: layers.map(
                         function(l){ return { layer: l.layer, name: l.name };
@@ -62,13 +62,14 @@ L.Dropchop.FileExecute = L.Dropchop.BaseExecute.extend({
                 });
             },
 
-            upload: function ( action, parameters, options, layers ){
+            upload: function ( action, parameters, options, layers, callback ){
                 var files = document.querySelectorAll('input[type=file]')[0].files;
                 this.fire('uploadedfiles', files);
             },
 
-            'load from url': function ( action, parameters, options, layers ) {
+            'load from url': function ( action, parameters, options, layers, callback ) {
                 var url = parameters[0];
+                console.debug('Retrieving url ' + url);
                 this.getRequest(url, function(xhr) {
                     if (xhr.status === 200) {
                         var filename = xhr.responseURL.substring(xhr.responseURL.lastIndexOf('/')+1);
@@ -79,7 +80,7 @@ L.Dropchop.FileExecute = L.Dropchop.BaseExecute.extend({
                 });
             },
 
-            'load from gist': function ( action, parameters, options, layers ) {
+            'load from gist': function ( action, parameters, options, layers, callback ) {
                 var gist = parameters[0];
                 gist = gist.split('/')[gist.split('/').length-1];
                 console.debug('Retrieving gist ' + gist);
@@ -101,7 +102,7 @@ L.Dropchop.FileExecute = L.Dropchop.BaseExecute.extend({
         if (typeof actions[action] !== 'function') {
           throw new Error('Invalid action.');
         }
-        return actions[action].call(this, action, parameters, options, layers);
+        return actions[action].call(this, action, parameters, options, layers, callback);
     },
 
     /*
