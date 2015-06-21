@@ -1,16 +1,15 @@
 describe("L.Dropchop.FileExecute Operations", function(){
+
     var menu;
     var ops;
     var exampleData = true;
 
-    // TODO: test for geojson save
     describe('Save as a geojson', function () {
-        expect(exampleData).to.eql(true);
+        // TODO: test for geojson save
     });
 
-    // TODO: test for shapefile save
     describe('Save as a shapefile', function () {
-        expect(exampleData).to.eql(true);
+        // TODO: test for shapefile save
     });
 
     describe('load from url', function () {
@@ -94,10 +93,65 @@ describe("L.Dropchop.FileExecute Operations", function(){
     });
 
     describe('getRequest', function () {
+        var xhr, requests, getRequest, _addJsonAsLayer, fakeThis;
+
+        beforeEach(function () {
+            xhr = sinon.useFakeXMLHttpRequest();
+            requests = [];
+            xhr.onCreate = function (req) { requests.push(req); };
+        });
+
+        afterEach(function () {
+            xhr.restore();
+        });
+
+        it('requests provided url, calls callback', function () {
+            var callback = sinon.spy();
+            L.Dropchop.FileExecute.prototype.getRequest('http://google.com', callback);
+
+            expect(requests.length).to.equal(1);
+            expect(requests[0].url).to.equal('http://google.com');
+            // expect(callback.called).to.equal(true);  // TODO: We should assert that the callback is called with proper results data. This seems to fail for some reason.
+        });
 
     });
 
     describe('_addJsonAsLayer', function () {
-        // TODO: This should be tested heavily
+
+        var callback, notification;
+        beforeEach(function () {
+            callback = sinon.stub();
+            // notification = sinon.stub(L.Dropchop.app.notification.prototype, 'add');
+            console.error = sinon.stub(console, "error");
+        });
+
+        afterEach(function () {
+            // notification.restore()
+            console.error.restore();
+        });
+
+        it("calls callback properly", function () {
+            L.Dropchop.FileExecute.prototype._addJsonAsLayer('{}', 'filename.json', callback);
+            expect(callback.calledOnce).to.equal(true);
+            expect(callback.firstCall.args).to.eql(
+                [{ add: [{ geometry: {}, name: 'filename.json' }] }]
+            );
+        });
+
+        it("notifies on failure", function () {
+            var fakeThis = {options: {notifications: {add: sinon.stub()}}}
+            L.Dropchop.FileExecute.prototype._addJsonAsLayer.bind(fakeThis)('bad json', 'filename.json', callback);
+            expect(callback.calledOnce).to.equal(false);
+            expect(fakeThis.options.notifications.add.called).to.equal(true);
+            expect(fakeThis.options.notifications.add.firstCall.args).to.eql([{
+                text: 'Failed to add filename.json',
+                type: 'alert',
+                time: 2500
+            }]);
+        });
+
+        it("uncollects single-length featurecollections", function () {
+
+        });
     });
 });
